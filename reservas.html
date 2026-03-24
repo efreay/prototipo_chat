@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Barbecue Garage — Panel de Reservas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:      #f4f1ed;
+    --surface: #ffffff;
+    --border:  #e8e0d5;
+    --border2: #ddd4c5;
+    --red:     #c0392b;
+    --ember:   #e8671a;
+    --coal:    #1a1210;
+    --green:   #27ae60;
+    --text:    #1a1210;
+    --muted:   #9a8878;
+    --light:   #c5b5a8;
+    --shadow:  0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.05);
+  }
+
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ─── TOP BAR ─── */
+  .topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: 0 1px 10px rgba(0,0,0,0.07);
+    position: relative;
+  }
+
+  .topbar::after {
+    content: ''; position: absolute;
+    bottom: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--red), var(--ember), var(--red));
+    opacity: .7;
+  }
+
+  .brand {
+    display: flex; align-items: center; gap: 10px;
+  }
+
+  .brand-icon {
+    width: 38px; height: 38px; border-radius: 10px;
+    background: linear-gradient(145deg, #200e08, #3a1a10);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; box-shadow: 0 2px 8px rgba(192,57,43,.3);
+  }
+
+  .brand-name {
+    font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 800;
+    color: var(--coal); letter-spacing: .01em;
+  }
+  .brand-name em { font-style: normal; color: var(--red); }
+  .brand-sub { font-size: 11px; color: var(--muted); margin-top: 1px; font-weight: 500; }
+
+  .topbar-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+  .btn {
+    display: flex; align-items: center; gap: 7px;
+    padding: 8px 16px; border-radius: 10px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    border: none; transition: all .18s; text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .btn-outline {
+    background: var(--surface); border: 1.5px solid var(--border2);
+    color: var(--muted);
+  }
+  .btn-outline:hover { border-color: var(--ember); color: var(--ember); background: #fef3ec; }
+
+  .btn-green {
+    background: var(--green); color: #fff;
+    box-shadow: 0 2px 8px rgba(39,174,96,.25);
+  }
+  .btn-green:hover { opacity: .88; }
+
+  .btn-red {
+    background: var(--red); color: #fff;
+    box-shadow: 0 2px 8px rgba(192,57,43,.25);
+  }
+  .btn-red:hover { opacity: .88; }
+
+  /* ─── MAIN ─── */
+  .main { padding: 24px; max-width: 1000px; margin: 0 auto; }
+
+  /* ─── STATS ─── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  .stat-card {
+    background: var(--surface); border: 1.5px solid var(--border);
+    border-radius: 14px; padding: 16px 18px;
+    box-shadow: var(--shadow);
+  }
+  .stat-val {
+    font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800;
+    color: var(--coal); line-height: 1;
+  }
+  .stat-val.red { color: var(--red); }
+  .stat-val.green { color: var(--green); }
+  .stat-label { font-size: 12px; color: var(--muted); margin-top: 5px; font-weight: 500; }
+
+  /* ─── SEARCH ─── */
+  .search-bar {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .search-input {
+    flex: 1; background: var(--surface);
+    border: 1.5px solid var(--border2); border-radius: 12px;
+    padding: 10px 16px; color: var(--coal);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 14px; outline: none; transition: border-color .2s;
+  }
+  .search-input::placeholder { color: var(--light); }
+  .search-input:focus { border-color: var(--ember); box-shadow: 0 0 0 3px rgba(232,103,26,.09); }
+
+  /* ─── TABLE ─── */
+  .table-wrap {
+    background: var(--surface); border: 1.5px solid var(--border);
+    border-radius: 16px; overflow: hidden; box-shadow: var(--shadow);
+  }
+
+  table { width: 100%; border-collapse: collapse; }
+
+  thead tr {
+    background: #faf7f4; border-bottom: 1.5px solid var(--border);
+  }
+
+  th {
+    padding: 11px 14px; text-align: left;
+    font-size: 11px; font-weight: 700; color: var(--muted);
+    letter-spacing: .06em; text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background .15s;
+  }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: #faf7f4; }
+
+  td {
+    padding: 12px 14px; font-size: 13.5px; color: var(--coal);
+    vertical-align: middle;
+  }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 10px; border-radius: 20px;
+    font-size: 11.5px; font-weight: 600;
+  }
+
+  .badge-green { background: #eafaf1; color: #1e8449; border: 1px solid #c8e6c9; }
+  .badge-yellow { background: #fffbf0; color: #b08020; border: 1px solid #f0e4c0; }
+  .badge-red { background: #fdf0ee; color: #a93226; border: 1px solid #f5c6c2; }
+
+  .action-btn {
+    background: none; border: 1px solid var(--border);
+    border-radius: 7px; padding: 4px 10px;
+    font-size: 12px; color: var(--muted); cursor: pointer;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    transition: all .15s;
+  }
+  .action-btn:hover { background: #fdf0ee; border-color: #f5c6c2; color: var(--red); }
+
+  .actions-cell { display: flex; gap: 5px; align-items: center; }
+
+  /* ─── EMPTY STATE ─── */
+  .empty {
+    text-align: center; padding: 60px 24px;
+    color: var(--muted);
+  }
+  .empty-icon { font-size: 48px; margin-bottom: 14px; opacity: .6; }
+  .empty-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800; color: var(--coal); margin-bottom: 8px; }
+  .empty-sub { font-size: 14px; line-height: 1.6; }
+  .empty a { color: var(--ember); font-weight: 600; text-decoration: none; }
+  .empty a:hover { text-decoration: underline; }
+
+  /* ─── TOAST ─── */
+  .toast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--coal); color: #fff;
+    padding: 11px 20px; border-radius: 12px; font-size: 13px;
+    z-index: 200; opacity: 0; pointer-events: none;
+    transition: all .28s; max-width: 88vw;
+    box-shadow: 0 4px 20px rgba(0,0,0,.2); font-weight: 500;
+    transform: translateY(8px);
+  }
+  .toast.on { opacity: 1; transform: translateY(0); }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 640px) {
+    .main { padding: 16px; }
+    .topbar { padding: 12px 16px; }
+    td:nth-child(6), th:nth-child(6) { display: none; } /* hide reg date on mobile */
+    .stat-val { font-size: 26px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-icon">🔥</div>
+    <div>
+      <div class="brand-name">BARBECUE <em>GARAGE</em></div>
+      <div class="brand-sub">Panel de Reservas · Le Meridiem</div>
+    </div>
+  </div>
+  <div class="topbar-actions">
+    <a href="index.html" class="btn btn-outline">💬 Volver al chat</a>
+    <button class="btn btn-green" onclick="exportCSV()">⬇️ Exportar Excel</button>
+    <button class="btn btn-red" onclick="clearAllConfirm()">🗑️ Limpiar</button>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- Stats -->
+  <div class="stats-grid" id="statsGrid">
+    <div class="stat-card">
+      <div class="stat-val" id="statTotal">0</div>
+      <div class="stat-label">Total de reservas</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val green" id="statHoy">0</div>
+      <div class="stat-label">Reservas de hoy</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val red" id="statPersonas">0</div>
+      <div class="stat-label">Personas esperadas</div>
+    </div>
+  </div>
+
+  <!-- Search -->
+  <div class="search-bar">
+    <input class="search-input" id="searchInput"
+           placeholder="🔍 Buscar por nombre, fecha o teléfono..."
+           oninput="renderTable()">
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Nombre</th>
+          <th>Personas</th>
+          <th>Fecha</th>
+          <th>Hora</th>
+          <th>Teléfono</th>
+          <th>Estado</th>
+          <th>Registrada</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+    <div class="empty" id="emptyState" style="display:none">
+      <div class="empty-icon">📋</div>
+      <div class="empty-title">Sin reservas aún</div>
+      <div class="empty-sub">Las reservas hechas desde el<br><a href="index.html">chat del restaurante</a> aparecerán aquí automáticamente.</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+function getReservations() {
+  return JSON.parse(localStorage.getItem('bbq_reservations') || '[]');
+}
+
+function saveReservations(arr) {
+  localStorage.setItem('bbq_reservations', JSON.stringify(arr));
+}
+
+function renderStats(reservations) {
+  const hoy = new Date().toLocaleDateString('es-CO', { day:'2-digit', month:'2-digit' });
+  const hoyCount = reservations.filter(r => {
+    // match fecha that contains today's date
+    const fecha = (r.fecha || '').toLowerCase();
+    return fecha.includes(hoy) || fecha.includes(new Date().getDate());
+  }).length;
+
+  const totalPersonas = reservations.reduce((s, r) => {
+    const n = parseInt(r.personas) || 0;
+    return s + n;
+  }, 0);
+
+  document.getElementById('statTotal').textContent    = reservations.length;
+  document.getElementById('statHoy').textContent      = hoyCount;
+  document.getElementById('statPersonas').textContent = totalPersonas;
+}
+
+function renderTable() {
+  const query = document.getElementById('searchInput').value.toLowerCase().trim();
+  let data    = getReservations();
+
+  if (query) {
+    data = data.filter(r =>
+      (r.nombre    || '').toLowerCase().includes(query) ||
+      (r.fecha     || '').toLowerCase().includes(query) ||
+      (r.telefono  || '').toLowerCase().includes(query) ||
+      (r.hora      || '').toLowerCase().includes(query)
+    );
+  }
+
+  renderStats(getReservations());
+
+  const tbody      = document.getElementById('tableBody');
+  const emptyState = document.getElementById('emptyState');
+
+  if (data.length === 0) {
+    tbody.innerHTML = '';
+    emptyState.style.display = 'block';
+    return;
+  }
+
+  emptyState.style.display = 'none';
+
+  // Sort newest first
+  const sorted = [...data].reverse();
+
+  tbody.innerHTML = sorted.map((r, i) => {
+    const badgeClass = r.estado === 'Cancelada' ? 'badge-red' :
+                       r.estado === 'Completada' ? 'badge-yellow' : 'badge-green';
+    return `
+      <tr>
+        <td style="color:var(--light);font-size:12px">${sorted.length - i}</td>
+        <td><strong>${r.nombre}</strong></td>
+        <td><span style="font-weight:700;color:var(--ember)">${r.personas}</span> pers.</td>
+        <td>${r.fecha}</td>
+        <td>${r.hora}</td>
+        <td style="font-family:monospace;font-size:13px">${r.telefono}</td>
+        <td><span class="badge ${badgeClass}">${r.estado}</span></td>
+        <td style="color:var(--light);font-size:12px">${r.fecha_reg}</td>
+        <td>
+          <div class="actions-cell">
+            ${r.estado !== 'Cancelada' ? `<button class="action-btn" onclick="cancelar(${r.id})">Cancelar</button>` : ''}
+            ${r.estado === 'Confirmada' ? `<button class="action-btn" onclick="completar(${r.id})" style="color:var(--green);border-color:var(--green)">✓</button>` : ''}
+          </div>
+        </td>
+      </tr>`;
+  }).join('');
+}
+
+function cancelar(id) {
+  const data = getReservations().map(r => r.id === id ? {...r, estado:'Cancelada'} : r);
+  saveReservations(data);
+  renderTable();
+  showToast('Reserva marcada como cancelada');
+}
+
+function completar(id) {
+  const data = getReservations().map(r => r.id === id ? {...r, estado:'Completada'} : r);
+  saveReservations(data);
+  renderTable();
+  showToast('✓ Reserva marcada como completada');
+}
+
+function clearAllConfirm() {
+  if (confirm('¿Eliminar TODAS las reservas? Esta acción no se puede deshacer.')) {
+    localStorage.removeItem('bbq_reservations');
+    renderTable();
+    showToast('🗑️ Reservas eliminadas');
+  }
+}
+
+function exportCSV() {
+  const data = getReservations();
+  if (!data.length) { showToast('No hay reservas para exportar'); return; }
+
+  const headers = ['ID','Nombre','Personas','Fecha','Hora','Teléfono','Estado','Registrada'];
+  const rows    = data.map(r =>
+    [r.id, r.nombre, r.personas, r.fecha, r.hora, r.telefono, r.estado, r.fecha_reg]
+    .map(v => `"${(v||'').toString().replace(/"/g,'""')}"`).join(',')
+  );
+
+  const csv  = [headers.join(','), ...rows].join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type:'text/csv;charset=utf-8;' }); // BOM for Excel
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `reservas_bbq_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('✅ Exportado como CSV (abre con Excel)');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('on');
+  setTimeout(() => t.classList.remove('on'), 3200);
+}
+
+// Escuchar cambios en tiempo real (si la reserva llega desde el chat en otra pestaña)
+window.addEventListener('storage', e => {
+  if (e.key === 'bbq_reservations') renderTable();
+});
+
+// Init
+renderTable();
+</script>
+</body>
+</html>

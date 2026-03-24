@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Barbecue Garage — Panel de Pedidos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#f4f1ed;--surface:#fff;--surface2:#f9f6f2;--surface3:#f0ebe3;
+    --border:#e8e0d5;--border2:#ddd4c5;
+    --red:#c0392b;--ember:#e8671a;--coal:#1a1210;
+    --text:#1a1210;--muted:#9a8878;--light:#c5b5a8;
+    --green:#27ae60;--yellow:#f39c12;--blue:#2980b9;--purple:#8e44ad;
+    --shadow:0 1px 3px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.05);
+    --shadow-md:0 2px 8px rgba(0,0,0,.10),0 8px 24px rgba(0,0,0,.07);
+  }
+  body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+  /* TOPBAR */
+  .topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:13px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;z-index:100;box-shadow:0 1px 10px rgba(0,0,0,.07);flex-wrap:wrap}
+  .topbar::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--red),var(--ember),var(--red));opacity:.7}
+  .brand{display:flex;align-items:center;gap:10px}
+  .brand-icon{width:38px;height:38px;border-radius:10px;background:linear-gradient(145deg,#200e08,#3a1a10);display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 2px 8px rgba(192,57,43,.3)}
+  .brand-name{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--coal)}
+  .brand-name em{font-style:normal;color:var(--red)}
+  .brand-sub{font-size:11px;color:var(--muted);margin-top:1px;font-weight:500}
+  .topbar-actions{display:flex;gap:8px;flex-wrap:wrap}
+  .btn{display:flex;align-items:center;gap:6px;padding:8px 15px;border-radius:10px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .18s;text-decoration:none;white-space:nowrap}
+  .btn-outline{background:var(--surface);border:1.5px solid var(--border2);color:var(--muted)}
+  .btn-outline:hover{border-color:var(--ember);color:var(--ember);background:#fef3ec}
+  .btn-green{background:var(--green);color:#fff;box-shadow:0 2px 8px rgba(39,174,96,.25)}
+  .btn-green:hover{opacity:.88}
+  .btn-red{background:var(--red);color:#fff;box-shadow:0 2px 8px rgba(192,57,43,.25)}
+  .btn-red:hover{opacity:.88}
+
+  /* MAIN */
+  .main{padding:20px;max-width:1100px;margin:0 auto}
+
+  /* FILTERS */
+  .filters{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;align-items:center}
+  .filter-btn{padding:6px 16px;border-radius:20px;border:1.5px solid var(--border2);background:var(--surface);font-size:12.5px;color:var(--muted);cursor:pointer;font-weight:500;transition:all .18s;font-family:'Plus Jakarta Sans',sans-serif}
+  .filter-btn:hover,.filter-btn.active{border-color:var(--ember);color:var(--ember);background:#fef3ec}
+  .filter-btn.active{font-weight:700}
+  .search-input{flex:1;min-width:160px;max-width:280px;background:var(--surface);border:1.5px solid var(--border2);border-radius:12px;padding:8px 14px;color:var(--coal);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;outline:none;transition:border-color .2s}
+  .search-input:focus{border-color:var(--ember)}
+  .search-input::placeholder{color:var(--light)}
+
+  /* STATS */
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:20px}
+  .stat{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow)}
+  .stat-val{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;line-height:1}
+  .stat-val.red{color:var(--red)}.stat-val.yellow{color:var(--yellow)}.stat-val.blue{color:var(--blue)}.stat-val.green{color:var(--green)}
+  .stat-label{font-size:11.5px;color:var(--muted);margin-top:5px;font-weight:500}
+
+  /* KANBAN / CARDS */
+  .kanban{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:24px}
+  .kanban-col{background:var(--surface2);border-radius:16px;border:1.5px solid var(--border);padding:14px;min-height:100px}
+  .kanban-col-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  .kanban-col-title .count{background:var(--border2);color:var(--muted);border-radius:20px;padding:1px 9px;font-size:11px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600}
+  .col-pending   .kanban-col-title{color:var(--yellow)}
+  .col-verified  .kanban-col-title{color:var(--blue)}
+  .col-preparing .kanban-col-title{color:var(--ember)}
+  .col-ready     .kanban-col-title{color:var(--green)}
+
+  /* ORDER CARD */
+  .order-card{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:14px;box-shadow:var(--shadow);margin-bottom:10px;transition:box-shadow .18s}
+  .order-card:hover{box-shadow:var(--shadow-md)}
+  .oc-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;gap:8px}
+  .oc-id{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:var(--coal)}
+  .oc-time{font-size:10.5px;color:var(--light);font-weight:500;text-align:right;line-height:1.3}
+  .oc-row{font-size:12.5px;color:var(--coal);margin:4px 0;display:flex;gap:8px}
+  .oc-row span:first-child{color:var(--muted);min-width:52px;flex-shrink:0;font-size:11.5px}
+  .oc-items{font-size:12px;color:var(--coal);background:var(--surface2);border-radius:8px;padding:7px 10px;margin:8px 0;line-height:1.6;border:1px solid var(--border)}
+  .oc-total{font-weight:700;font-size:13px;color:var(--coal);display:flex;justify-content:space-between;margin-top:8px}
+  .oc-total em{font-style:normal;color:var(--ember)}
+  .oc-notas{font-size:11.5px;color:#7a3a08;background:#fef3ec;border:1px solid #f0d8c0;border-radius:8px;padding:5px 9px;margin:5px 0}
+
+  /* STATUS BADGE */
+  .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+  .badge-yellow{background:#fffbf0;color:#b08020;border:1px solid #f0e4c0}
+  .badge-blue{background:#eaf4fd;color:#1a6fa0;border:1px solid #c5e3f5}
+  .badge-ember{background:#fef3ec;color:#b05010;border:1px solid #f0d8c0}
+  .badge-green{background:#eafaf1;color:#1e8449;border:1px solid #c8e6c9}
+  .badge-red{background:#fdf0ee;color:#a93226;border:1px solid #f5c6c2}
+
+  /* ACTION BUTTONS */
+  .oc-actions{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+  .oc-btn{flex:1;padding:8px 10px;border-radius:9px;border:none;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .18s;min-width:80px;text-align:center}
+  .oc-btn-green{background:var(--green);color:#fff}.oc-btn-green:hover{opacity:.85}
+  .oc-btn-blue{background:var(--blue);color:#fff}.oc-btn-blue:hover{opacity:.85}
+  .oc-btn-ember{background:var(--ember);color:#fff}.oc-btn-ember:hover{opacity:.85}
+  .oc-btn-outline{background:var(--surface);border:1.5px solid var(--border2);color:var(--muted)}.oc-btn-outline:hover{border-color:var(--red);color:var(--red)}
+
+  /* TABLE (vista lista) */
+  .table-view{display:none}
+  .table-view.active{display:block}
+  .table-wrap{background:var(--surface);border:1.5px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:var(--shadow)}
+  table{width:100%;border-collapse:collapse}
+  thead tr{background:#faf7f4;border-bottom:1.5px solid var(--border)}
+  th{padding:10px 13px;text-align:left;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+  tbody tr{border-bottom:1px solid var(--border);transition:background .15s}
+  tbody tr:last-child{border-bottom:none}
+  tbody tr:hover{background:#faf7f4}
+  td{padding:11px 13px;font-size:13px;color:var(--coal);vertical-align:middle}
+  .act-cell{display:flex;gap:5px}
+  .tbl-btn{background:none;border:1px solid var(--border);border-radius:7px;padding:4px 9px;font-size:11.5px;color:var(--muted);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all .15s;white-space:nowrap}
+  .tbl-btn:hover{background:#fef3ec;border-color:var(--ember);color:var(--ember)}
+
+  /* VIEW TOGGLE */
+  .view-toggle{display:flex;gap:6px;margin-left:auto}
+  .vtbtn{padding:6px 12px;border-radius:9px;border:1.5px solid var(--border2);background:var(--surface);font-size:12px;color:var(--muted);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;transition:all .18s}
+  .vtbtn.active{background:var(--ember);border-color:var(--ember);color:#fff}
+
+  /* EMPTY */
+  .empty{text-align:center;padding:50px 24px;color:var(--muted)}
+  .empty-icon{font-size:44px;margin-bottom:12px;opacity:.5}
+  .empty-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:var(--coal);margin-bottom:7px}
+  .empty-sub{font-size:13.5px;line-height:1.6}
+  .empty a{color:var(--ember);font-weight:600;text-decoration:none}
+
+  /* MODAL */
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;align-items:center;justify-content:center;padding:20px}
+  .modal-overlay.on{display:flex}
+  .modal{background:var(--surface);border-radius:18px;padding:24px;max-width:480px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.2)}
+  .modal-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--coal);margin-bottom:16px}
+  .modal-body{font-size:14px;color:var(--coal);line-height:1.6;margin-bottom:20px}
+  .modal-actions{display:flex;gap:10px;justify-content:flex-end}
+
+  /* TOAST */
+  .toast{position:fixed;bottom:20px;right:20px;background:var(--coal);color:#fff;padding:11px 20px;border-radius:12px;font-size:13px;z-index:300;opacity:0;pointer-events:none;transition:all .28s;max-width:88vw;font-weight:500;transform:translateY(8px);box-shadow:var(--shadow-md)}
+  .toast.on{opacity:1;transform:translateY(0)}
+
+  @media(max-width:600px){
+    .main{padding:12px}
+    .topbar{padding:10px 14px}
+    .kanban{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-icon">🔥</div>
+    <div>
+      <div class="brand-name">BARBECUE <em>GARAGE</em></div>
+      <div class="brand-sub">Panel de Pedidos · Le Meridiem</div>
+    </div>
+  </div>
+  <div class="topbar-actions">
+    <a href="index.html" class="btn btn-outline">💬 Chat</a>
+    <a href="reservas.html" class="btn btn-outline">📋 Reservas</a>
+    <button class="btn btn-green" onclick="exportCSV()">⬇️ Exportar</button>
+    <button class="btn btn-red" onclick="clearAll()">🗑️ Limpiar</button>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- Stats -->
+  <div class="stats" id="statsGrid">
+    <div class="stat"><div class="stat-val red"   id="sPendiente">0</div><div class="stat-label">⏳ Pendiente pago</div></div>
+    <div class="stat"><div class="stat-val blue"  id="sVerificado">0</div><div class="stat-label">✅ Pago verificado</div></div>
+    <div class="stat"><div class="stat-val yellow" id="sPreparando">0</div><div class="stat-label">👨‍🍳 En preparación</div></div>
+    <div class="stat"><div class="stat-val green" id="sListo">0</div><div class="stat-label">🎉 Listos / Entregados</div></div>
+    <div class="stat"><div class="stat-val"       id="sTotal">$0</div><div class="stat-label">💰 Total del día</div></div>
+  </div>
+
+  <!-- Filters + Toggle -->
+  <div class="filters">
+    <button class="filter-btn active" onclick="setFilter('todos',this)">Todos</button>
+    <button class="filter-btn" onclick="setFilter('Pendiente pago',this)">⏳ Pendiente</button>
+    <button class="filter-btn" onclick="setFilter('Pago verificado',this)">✅ Verificado</button>
+    <button class="filter-btn" onclick="setFilter('En preparación',this)">👨‍🍳 Preparando</button>
+    <button class="filter-btn" onclick="setFilter('Listo',this)">🎉 Listos</button>
+    <input class="search-input" id="searchInput" placeholder="🔍 Buscar nombre o tel..." oninput="render()">
+    <div class="view-toggle">
+      <button class="vtbtn active" onclick="setView('kanban',this)">▦ Kanban</button>
+      <button class="vtbtn" onclick="setView('lista',this)">☰ Lista</button>
+    </div>
+  </div>
+
+  <!-- KANBAN VIEW -->
+  <div id="kanbanView">
+    <div class="kanban">
+      <div class="kanban-col col-pending">
+        <div class="kanban-col-title">⏳ Pendiente pago <span class="count" id="kc-pendiente">0</span></div>
+        <div id="col-pendiente"></div>
+      </div>
+      <div class="kanban-col col-verified">
+        <div class="kanban-col-title">✅ Pago verificado <span class="count" id="kc-verificado">0</span></div>
+        <div id="col-verificado"></div>
+      </div>
+      <div class="kanban-col col-preparing">
+        <div class="kanban-col-title">👨‍🍳 En preparación <span class="count" id="kc-preparando">0</span></div>
+        <div id="col-preparando"></div>
+      </div>
+      <div class="kanban-col col-ready">
+        <div class="kanban-col-title">🎉 Listo <span class="count" id="kc-listo">0</span></div>
+        <div id="col-listo"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LIST VIEW -->
+  <div class="table-view" id="listaView">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th><th>Nombre</th><th>Pedido</th>
+            <th>Dirección</th><th>Total</th><th>Estado</th>
+            <th>Hora</th><th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+      <div class="empty" id="tableEmpty" style="display:none">
+        <div class="empty-icon">🧾</div>
+        <div class="empty-title">Sin pedidos aún</div>
+        <div class="empty-sub">Los pedidos del <a href="index.html">chat</a> aparecerán aquí.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- MODAL de confirmación de pago -->
+<div class="modal-overlay" id="payModal">
+  <div class="modal">
+    <div class="modal-title">✅ Verificar pago del pedido</div>
+    <div class="modal-body" id="payModalBody"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-green" onclick="confirmPay()">Confirmar pago recibido ✅</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentFilter = 'todos';
+let currentView   = 'kanban';
+let pendingPayId  = null;
+
+function getOrders() {
+  return JSON.parse(localStorage.getItem('bbq_orders')||'[]');
+}
+function saveOrders(list) {
+  localStorage.setItem('bbq_orders', JSON.stringify(list));
+}
+
+// ── FILTERS & VIEW ──
+function setFilter(f, el) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  render();
+}
+
+function setView(v, el) {
+  currentView = v;
+  document.querySelectorAll('.vtbtn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('kanbanView').style.display = v==='kanban' ? '' : 'none';
+  document.getElementById('listaView').classList.toggle('active', v==='lista');
+  render();
+}
+
+// ── MAIN RENDER ──
+function render() {
+  const query  = (document.getElementById('searchInput').value||'').toLowerCase();
+  let   orders = getOrders().reverse(); // newest first
+
+  // search
+  if (query) {
+    orders = orders.filter(o =>
+      (o.nombre||'').toLowerCase().includes(query) ||
+      (o.telefono||'').toLowerCase().includes(query) ||
+      (o.items||'').toLowerCase().includes(query)
+    );
+  }
+
+  renderStats(getOrders()); // always full stats
+
+  if (currentView === 'kanban') renderKanban(orders);
+  else renderTable(orders);
+}
+
+function renderStats(all) {
+  const count = s => all.filter(o=>o.estado===s).length;
+  document.getElementById('sPendiente').textContent  = count('Pendiente pago');
+  document.getElementById('sVerificado').textContent = count('Pago verificado');
+  document.getElementById('sPreparando').textContent = count('En preparación');
+  document.getElementById('sListo').textContent      = count('Listo');
+
+  // total del día (solo verificados, preparando, listos)
+  const today = new Date().toLocaleDateString('es-CO');
+  const total = all
+    .filter(o => o.fecha_reg.includes(today) && o.estado !== 'Pendiente pago' && o.estado !== 'Cancelado')
+    .reduce((s,o) => s + (parseInt((o.total||'0').replace(/\D/g,''))||0), 0);
+  document.getElementById('sTotal').textContent = '$'+total.toLocaleString('es-CO');
+}
+
+// ── KANBAN ──
+function renderKanban(orders) {
+  const cols = {
+    'Pendiente pago':'pendiente',
+    'Pago verificado':'verificado',
+    'En preparación':'preparando',
+    'Listo':'listo'
+  };
+
+  Object.values(cols).forEach(id => {
+    document.getElementById('col-'+id).innerHTML='';
+    document.getElementById('kc-'+id).textContent='0';
+  });
+
+  let counts = {'Pendiente pago':0,'Pago verificado':0,'En preparación':0,'Listo':0};
+
+  orders.forEach(o => {
+    if (currentFilter!=='todos' && o.estado!==currentFilter) return;
+    counts[o.estado] = (counts[o.estado]||0)+1;
+    const colId = cols[o.estado];
+    if (!colId) return;
+    const el = buildOrderCard(o);
+    document.getElementById('col-'+colId).appendChild(el);
+  });
+
+  Object.entries(counts).forEach(([estado,n]) => {
+    const id = cols[estado];
+    if (id) document.getElementById('kc-'+id).textContent=n;
+  });
+}
+
+function buildOrderCard(o) {
+  const wrap = document.createElement('div');
+  wrap.className = 'order-card';
+  const shortId = String(o.id).slice(-5);
+  const badge   = badgeHTML(o.estado);
+  const actions = actionsHTML(o);
+  wrap.innerHTML = `
+    <div class="oc-header">
+      <div>
+        <div class="oc-id">#${shortId}</div>
+        ${badge}
+      </div>
+      <div class="oc-time">${o.fecha_reg}</div>
+    </div>
+    <div class="oc-row"><span>👤</span><strong>${o.nombre}</strong></div>
+    <div class="oc-row"><span>📞</span>${o.telefono}</div>
+    <div class="oc-row"><span>📍</span>${o.direccion}</div>
+    <div class="oc-items">${(o.items||'').replace(/;/g,'<br>')}</div>
+    ${o.notas?`<div class="oc-notas">📝 ${o.notas}</div>`:''}
+    <div class="oc-total"><span>Total</span><em>$${o.total}</em></div>
+    <div class="oc-actions">${actions}</div>`;
+  return wrap;
+}
+
+function badgeHTML(estado) {
+  const map = {
+    'Pendiente pago':  ['badge-yellow','⏳'],
+    'Pago verificado': ['badge-blue','✅'],
+    'En preparación':  ['badge-ember','👨‍🍳'],
+    'Listo':           ['badge-green','🎉'],
+    'Cancelado':       ['badge-red','❌'],
+  };
+  const [cls,ico] = map[estado]||['badge-yellow','?'];
+  return `<span class="badge ${cls}">${ico} ${estado}</span>`;
+}
+
+function actionsHTML(o) {
+  if (o.estado==='Pendiente pago') return `
+    <button class="oc-btn oc-btn-green" onclick="openPayModal(${o.id})">✅ Verificar pago</button>
+    <button class="oc-btn oc-btn-outline" onclick="cancelOrder(${o.id})">❌</button>`;
+  if (o.estado==='Pago verificado') return `
+    <button class="oc-btn oc-btn-ember" onclick="nextState(${o.id},'En preparación')">👨‍🍳 Preparando</button>
+    <button class="oc-btn oc-btn-outline" onclick="sendWA(${o.id})">📲 Notificar</button>`;
+  if (o.estado==='En preparación') return `
+    <button class="oc-btn oc-btn-green" onclick="nextState(${o.id},'Listo')">🎉 ¡Listo!</button>
+    <button class="oc-btn oc-btn-outline" onclick="sendWA(${o.id})">📲 Notificar</button>`;
+  if (o.estado==='Listo') return `
+    <button class="oc-btn oc-btn-outline" style="color:var(--green);border-color:var(--green)" onclick="sendWA(${o.id})">📲 Avisar cliente</button>`;
+  return '';
+}
+
+// ── TABLE ──
+function renderTable(orders) {
+  const body  = document.getElementById('tableBody');
+  const empty = document.getElementById('tableEmpty');
+  const filtered = currentFilter==='todos' ? orders : orders.filter(o=>o.estado===currentFilter);
+
+  if (!filtered.length){body.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+
+  body.innerHTML = filtered.map((o,i)=>`
+    <tr>
+      <td style="color:var(--light);font-size:11px">#${String(o.id).slice(-4)}</td>
+      <td><strong>${o.nombre}</strong><br><span style="font-size:11px;color:var(--muted)">${o.telefono}</span></td>
+      <td style="max-width:180px;font-size:12px">${(o.items||'').replace(/;/g,'<br>')}</td>
+      <td style="font-size:12px;max-width:160px">${o.direccion}</td>
+      <td style="font-weight:700;color:var(--ember)">$${o.total}</td>
+      <td>${badgeHTML(o.estado)}</td>
+      <td style="font-size:11px;color:var(--light)">${o.fecha_reg.split(',')[1]||o.fecha_reg}</td>
+      <td><div class="act-cell">${tableActions(o)}</div></td>
+    </tr>`).join('');
+}
+
+function tableActions(o) {
+  if (o.estado==='Pendiente pago') return `
+    <button class="tbl-btn" onclick="openPayModal(${o.id})">✅ Verificar</button>
+    <button class="tbl-btn" onclick="cancelOrder(${o.id})">❌</button>`;
+  if (o.estado==='Pago verificado') return `
+    <button class="tbl-btn" onclick="nextState(${o.id},'En preparación')">👨‍🍳 Preparar</button>`;
+  if (o.estado==='En preparación') return `
+    <button class="tbl-btn" onclick="nextState(${o.id},'Listo')">🎉 Listo</button>`;
+  if (o.estado==='Listo') return `
+    <button class="tbl-btn" onclick="sendWA(${o.id})">📲 Avisar</button>`;
+  return `<span style="font-size:11px;color:var(--light)">—</span>`;
+}
+
+// ── STATE TRANSITIONS ──
+function nextState(id, newState) {
+  const list = getOrders().map(o => o.id===id ? {...o,estado:newState} : o);
+  saveOrders(list);
+  render();
+  showToast(newState==='Listo' ? '🎉 Pedido marcado como listo' : `Estado: ${newState}`);
+  if (newState==='Listo') sendWA(id);
+}
+
+function cancelOrder(id) {
+  if (!confirm('¿Cancelar este pedido?')) return;
+  const list = getOrders().map(o => o.id===id ? {...o,estado:'Cancelado'} : o);
+  saveOrders(list);
+  render();
+  showToast('Pedido cancelado');
+}
+
+// ── PAY MODAL ──
+function openPayModal(id) {
+  pendingPayId = id;
+  const o = getOrders().find(o=>o.id===id);
+  if (!o) return;
+  document.getElementById('payModalBody').innerHTML = `
+    <strong>Pedido:</strong> ${o.items.replace(/;/g,'<br>')}<br><br>
+    <strong>Total:</strong> $${o.total}<br>
+    <strong>Cliente:</strong> ${o.nombre} · ${o.telefono}<br><br>
+    ¿Confirmás que el pago de <strong>$${o.total}</strong> fue recibido en Bancolombia?`;
+  document.getElementById('payModal').classList.add('on');
+}
+
+function confirmPay() {
+  if (!pendingPayId) return;
+  nextState(pendingPayId, 'Pago verificado');
+  sendWA(pendingPayId, 'verificado');
+  closeModal();
+  showToast('✅ Pago verificado. Cliente notificado.');
+  pendingPayId = null;
+}
+
+function closeModal() {
+  document.getElementById('payModal').classList.remove('on');
+}
+
+// ── WHATSAPP NOTIFICATION ──
+function sendWA(id, tipo) {
+  const o = getOrders().find(o=>o.id===id);
+  if (!o||!o.telefono||o.telefono==='—') { showToast('Sin teléfono registrado'); return; }
+
+  let msg = '';
+  const estado = tipo || o.estado;
+
+  if (estado==='verificado' || estado==='Pago verificado') {
+    msg = `¡Hola ${o.nombre}! 🔥 Recibimos tu pago. Tu pedido de *Barbecue Garage Le Meridiem* ya está en preparación. Te avisamos cuando esté listo. ¡Gracias!`;
+  } else if (estado==='Listo') {
+    msg = `¡Hola ${o.nombre}! 🎉 Tu pedido de *Barbecue Garage* está listo y en camino. ¡Que lo disfrutes! 🍔🔥`;
+  } else {
+    msg = `¡Hola ${o.nombre}! Actualización de tu pedido *Barbecue Garage*: *${o.estado}*. ¡Gracias por preferirnos! 🔥`;
+  }
+
+  const tel = o.telefono.replace(/\D/g,'');
+  const url = `https://wa.me/57${tel}?text=${encodeURIComponent(msg)}`;
+  window.open(url,'_blank');
+}
+
+// ── EXPORT ──
+function exportCSV() {
+  const data = getOrders();
+  if (!data.length) { showToast('No hay pedidos'); return; }
+  const headers = ['ID','Nombre','Teléfono','Dirección','Pedido','Total','Notas','Estado','Fecha'];
+  const rows = data.map(o=>[
+    String(o.id).slice(-5),o.nombre,o.telefono,o.direccion,
+    (o.items||'').replace(/;/g,' | '),o.total,o.notas||'',o.estado,o.fecha_reg
+  ].map(v=>`"${(v||'').toString().replace(/"/g,'""')}"`).join(','));
+  const csv  = [headers.join(','),...rows].join('\n');
+  const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href=url; a.download=`pedidos_bbq_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click(); URL.revokeObjectURL(url);
+  showToast('✅ Exportado como CSV');
+}
+
+function clearAll() {
+  if (!confirm('¿Eliminar TODOS los pedidos? No se puede deshacer.')) return;
+  localStorage.removeItem('bbq_orders');
+  render();
+  showToast('🗑️ Pedidos eliminados');
+}
+
+function showToast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('on');
+  setTimeout(()=>t.classList.remove('on'),3200);
+}
+
+// Auto-refresh si llega pedido desde otra pestaña
+window.addEventListener('storage', e => {
+  if (e.key==='bbq_orders') render();
+});
+
+render();
+</script>
+</body>
+</html>
